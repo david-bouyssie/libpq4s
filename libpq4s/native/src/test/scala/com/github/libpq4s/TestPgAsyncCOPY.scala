@@ -1,6 +1,7 @@
 package com.github.libpq4s
 
 import com.github.libpq4s.library._
+import TestPgAsyncAPI._
 import utest._
 
 import scala.annotation.tailrec
@@ -8,7 +9,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 import scala.concurrent.duration._
 
-object TestPgAsyncCOPY extends TestSuite with Logging {
+object TestPgAsyncCOPY extends LoopTestSuite with Logging {
 
   // TODO: put this in a custom TestFramework
   Logging.configureLogger(minLogLevel = LogLevel.TRACE)
@@ -18,10 +19,10 @@ object TestPgAsyncCOPY extends TestSuite with Logging {
   import pq._
 
   private val resourceName = "postgres"
-  private val _connInfo = s"host=127.0.0.1 port=5555 user=$resourceName password=$resourceName dbname=$resourceName"
+  private val _connInfo = s"host=127.0.0.1 port=5432 user=$resourceName password=$resourceName dbname=$resourceName"
 
   val tests = Tests {
-    //'createAndPopulateCarsTable - createAndPopulateCarsTable()
+    // 'createAndPopulateCarsTable - createAndPopulateCarsTable()
     'testAsyncCOPY - testAsyncCOPY()
   }
 
@@ -88,13 +89,14 @@ object TestPgAsyncCOPY extends TestSuite with Logging {
           }*/
         }
 
-        val lastFuture = writeNextRow(1, bufferSize)
+        for {
+          _ <- writeNextRow(1, bufferSize)
+          _ = println("hey")
+          _ <- pgBulkLoader.endCopy()
+        } yield ()
 
         //Future.sequence(futures).map( _ => () )
 
-        lastFuture.map { _ =>
-          pgBulkLoader.endCopy()
-        }
       }
     }
 
@@ -113,9 +115,9 @@ object TestPgAsyncCOPY extends TestSuite with Logging {
     PGresultUtils.checkExecutionStatus(conn.underlying, res.underlying, PGRES_COMMAND_OK, clearOnMismatch = true)
   }*/
 
-  /*private def createAndPopulateCarsTable(): Unit = {
+  private def createAndPopulateCarsTable(): Unit = {
 
-    _tryWithConnection(autoClose = true) { conn =>
+    tryWithConnection(autoClose = true) { conn =>
 
       conn.executeCommand("DROP TABLE IF EXISTS Cars")
 
@@ -142,7 +144,7 @@ object TestPgAsyncCOPY extends TestSuite with Logging {
       }
 
     }
-  }*/
+  }
 
 
   /*private def testAsyncCOPY(): Future[Unit] = {

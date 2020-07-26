@@ -128,14 +128,14 @@ abstract class AbstractConnection private[libpq4s]()(protected[libpq4s] implicit
     val execResult = if (paramValues.isEmpty) libpq.PQexec(conn, query)
     else libpq.PQexecParamsText(conn, query, paramValues, null)
 
-    PGresultUtils.checkExecutionStatus(underlying, execResult, ExecStatusType.PGRES_COMMAND_OK, clearOnMismatch = true)
+    PGresultUtils.checkExecutionStatus(underlying, execResult, ExecStatusType.PGRES_COMMAND_OK)
 
     val queryResult = new QueryResult(execResult)
-    val affectedRowsCount = queryResult.getAffectedRowsCount()
-
-    queryResult.close()
-
-    affectedRowsCount
+    try {
+      queryResult.getAffectedRowsCount()
+    } finally {
+      queryResult.close()
+    }
   }
 
   def executeAndProcess(query: String, paramValues: String*)(processFn: QueryResult => Unit): Unit = {
@@ -155,7 +155,7 @@ abstract class AbstractConnection private[libpq4s]()(protected[libpq4s] implicit
     val execResult = if (paramValues.isEmpty) libpq.PQexec(conn, query)
     else libpq.PQexecParamsText(conn, query, paramValues, null)
 
-    PGresultUtils.checkExecutionStatus(underlying, execResult, ExecStatusType.PGRES_TUPLES_OK, clearOnMismatch = true)
+    PGresultUtils.checkExecutionStatus(underlying, execResult, ExecStatusType.PGRES_TUPLES_OK)
 
     val pgResultConsumedPromise = Promise[Unit]
     val iter = new IterableQueryResult(conn, execResult, singleRowMode = true, pgResultConsumedPromise)
@@ -178,7 +178,7 @@ abstract class AbstractConnection private[libpq4s]()(protected[libpq4s] implicit
     )
 
     // FIXME: can we assume to get a PGRES_COMMAND_OK status???
-    PGresultUtils.checkExecutionStatus(underlying, prepareResult, ExecStatusType.PGRES_COMMAND_OK, clearOnMismatch = true)
+    PGresultUtils.checkExecutionStatus(underlying, prepareResult, ExecStatusType.PGRES_COMMAND_OK)
 
     new TextStatement(conn,prepareResult, stmtName = query)
   }

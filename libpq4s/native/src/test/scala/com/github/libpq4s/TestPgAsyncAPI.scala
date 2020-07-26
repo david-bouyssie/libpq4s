@@ -9,7 +9,7 @@ import com.github.libpq4s.api.ConnStatusType._
 
 import com.github.libpq4s.library._
 
-object TestPgAsyncAPI extends TestSuite with Logging {
+object TestPgAsyncAPI extends LoopTestSuite with Logging {
 
   // TODO: put this in a custom TestFramework
   Logging.configureLogger(minLogLevel = LogLevel.TRACE)
@@ -17,14 +17,14 @@ object TestPgAsyncAPI extends TestSuite with Logging {
   private implicit val pq: ILibPQ = LibPQ
 
   private val resourceName = "postgres"
-  private val _connInfo = s"host=127.0.0.1 port=5555 user=$resourceName password=$resourceName dbname=$resourceName"
+  private val _connInfo = s"host=127.0.0.1 port=5432 user=$resourceName password=$resourceName dbname=$resourceName"
 
   val tests = Tests {
     'createAndPopulateCarsTable - createAndPopulateCarsTable()
     'testAsyncQuery - testAsyncQuery()
   }
 
-  private def _tryWithConnection(autoClose: Boolean = true)(fn: Connection => Unit): Unit = {
+  def tryWithConnection(autoClose: Boolean = true)(fn: Connection => Unit): Unit = {
 
     /* Make a connection to the database */
     val conn = new Connection(_connInfo).open()
@@ -52,7 +52,7 @@ object TestPgAsyncAPI extends TestSuite with Logging {
 
   private def createAndPopulateCarsTable(): Unit = {
 
-    _tryWithConnection(autoClose = true) { conn =>
+    tryWithConnection(autoClose = true) { conn =>
 
       conn.executeCommand("DROP TABLE IF EXISTS Cars")
 
