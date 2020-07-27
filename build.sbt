@@ -10,8 +10,8 @@ val sharedSettings = Seq(
   scalacOptions ++= Seq("-deprecation", "-feature"),
 
   libraryDependencies ++= Seq(
-    //"com.outr" %%% "scribe" % "2.7.12"
-    //"com.lihaoyi" %%% "utest" % "0.7.4" % "test" // TODO: update me when the same version is available for both the JVM and SN
+    // "com.outr" %%% "scribe" % "2.7.12",
+    // "com.lihaoyi" %%% "utest" % "0.7.4" % "test" // TODO: update me when the same version is available for both the JVM and SN
   )
 )
 
@@ -40,7 +40,7 @@ lazy val libpq4s = crossProject(JVMPlatform, NativePlatform)
     libraryDependencies ++= Seq(
       "com.outr" %%% "scribe" % "2.7.12",
       "dev.whaling" % "native-loop-core_native0.4.0-M2_2.11" % "0.1.1-SNAPSHOT",
-      "com.lihaoyi" %%% "utest" % "0.7.5-SNAPSHOT" % "test"
+      "com.lihaoyi" %%% "utest" % "0.7.4" % Test
     ),
 
     testFrameworks += new TestFramework("utest.runner.Framework"),

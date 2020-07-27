@@ -9,14 +9,14 @@ class CopyManager private[libpq4s](connection: Connection)(private[libpq4s] impl
 
   def copyIn(sql: String): CopyIn = {
     val execResult = libpq.PQexec(connection.underlying, sql)
-    PGresultUtils.checkExecutionStatus(connection.underlying, execResult, ExecStatusType.PGRES_COPY_IN, clearOnMismatch = true)
+    PGresultUtils.checkExecutionStatus(connection.underlying, execResult, ExecStatusType.PGRES_COPY_IN)
 
     new CopyIn(connection.underlying, execResult)
   }
 
   def copyOut(sql: String): CopyOut = {
     val execResult = libpq.PQexec(connection.underlying, sql)
-    PGresultUtils.checkExecutionStatus(connection.underlying, execResult, ExecStatusType.PGRES_COPY_OUT, clearOnMismatch = true)
+    PGresultUtils.checkExecutionStatus(connection.underlying, execResult, ExecStatusType.PGRES_COPY_OUT)
 
     new CopyOut(connection.underlying, execResult)
   }
@@ -71,11 +71,13 @@ class CopyIn private[libpq4s](conn: IPGconn, protected var res: IPGresult)(priva
 
     // After successfully calling PQputCopyEnd, call PQgetResult to obtain the final result status of the COPY command.
     val finalRes = libpq.PQgetResult(conn)
-    PGresultUtils.checkExecutionStatus(conn, finalRes, ExecStatusType.PGRES_COMMAND_OK, clearOnMismatch = true)
+    try {
+      PGresultUtils.checkExecutionStatus(conn, finalRes, ExecStatusType.PGRES_COMMAND_OK)
+    } finally {
+      libpq.PQclear(finalRes)
+      this.close()
+    }
 
-    libpq.PQclear(finalRes)
-
-    this.close()
   }
 
   private def _checkPutResult(putResult: Try[Boolean] ): Unit = {

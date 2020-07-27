@@ -9,12 +9,12 @@ import com.github.libpq4s.api.ExecStatusType._
 import com.github.libpq4s.library._
 
 // TODO: create tests intercepting failures (such as invalid _connInfo)
-object TestPgConn extends TestSuite {
+object TestPgConn extends LoopTestSuite {
 
   private implicit val pq: ILibPQ = LibPQ
 
   private val _pgDefaultResName = "postgres"
-  private val _connInfo = s"host=127.0.0.1 port=5555 user=postgres password=postgres dbname=postgres"
+  private val _connInfo = s"host=127.0.0.1 port=5432 user=postgres password=postgres dbname=postgres"
 
   val tests = Tests {
     'testGetLibPQVersion - testGetLibPQVersion()
@@ -46,7 +46,7 @@ object TestPgConn extends TestSuite {
     println("PQ Library Version: " + ConnectionFactory.getLibraryVersion())
   }
 
-  private def _tryWithConnection(fn: Connection => Unit): Unit = {
+  private def tryWithConnection(fn: Connection => Unit): Unit = {
 
     /* Make a connection to the database */
     val conn = new Connection(_connInfo).open()
@@ -68,7 +68,7 @@ object TestPgConn extends TestSuite {
 
   def testSimpleConnection(): Unit = {
 
-    _tryWithConnection { conn =>
+    tryWithConnection { conn =>
 
       println(s"Host: ${conn.host}")
       println(s"Port: ${conn.port}")
@@ -90,7 +90,7 @@ object TestPgConn extends TestSuite {
 
   def testSimpleQuery(): Unit = {
 
-    _tryWithConnection { conn =>
+    tryWithConnection { conn =>
 
       conn.executeAndProcess("SELECT VERSION()") { res =>
         if (res.checkStatus() != PGRES_TUPLES_OK) {
@@ -109,7 +109,7 @@ object TestPgConn extends TestSuite {
 
   def testOfficialExample(): Unit = {
 
-    _tryWithConnection { conn =>
+    tryWithConnection { conn =>
 
       /* Set always-secure search path, so malicious users can't take control. */
       conn.executeAndProcess("SELECT pg_catalog.set_config('search_path', '', false)") { res =>
@@ -169,7 +169,7 @@ object TestPgConn extends TestSuite {
 
   /*def testTutorial(): Unit = {
 
-    _tryWithConnection { conn =>
+    tryWithConnection { conn =>
 
       Tests {
         "Creating a database table" - _createAndPopulateTable()
@@ -186,7 +186,7 @@ object TestPgConn extends TestSuite {
 
   private def _createAndPopulateCarsTable(): Unit = {
 
-    _tryWithConnection { conn =>
+    tryWithConnection { conn =>
 
       conn.executeCommand("DROP TABLE IF EXISTS Cars")
 
@@ -224,7 +224,7 @@ object TestPgConn extends TestSuite {
 
   private def _listTables(): Unit = {
 
-    _tryWithConnection { conn =>
+    tryWithConnection { conn =>
 
       conn.executeAndProcess("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'") { res =>
         _checkPQSelectResult(res, conn)
@@ -243,7 +243,7 @@ object TestPgConn extends TestSuite {
 
   private def _queryMetadata(): Unit = {
 
-    _tryWithConnection { conn =>
+    tryWithConnection { conn =>
 
       conn.executeAndProcess("SELECT * FROM Cars WHERE Id=0") { res =>
         _checkPQSelectResult(res, conn)
@@ -279,7 +279,7 @@ object TestPgConn extends TestSuite {
 
     for (c <- 1 to 6) {
 
-      _tryWithConnection { conn =>
+      tryWithConnection { conn =>
 
         for (i <- 1 to 10) {
 
@@ -334,7 +334,7 @@ object TestPgConn extends TestSuite {
 
   private def _queryUsingPreparedStatement(): Unit = {
 
-    _tryWithConnection { conn =>
+    tryWithConnection { conn =>
 
       val sql = "SELECT * FROM Cars WHERE Id=$1"
       val carId = "1"
@@ -363,7 +363,7 @@ object TestPgConn extends TestSuite {
 
   private def _updateDataUsingTransaction(): Unit = {
 
-    _tryWithConnection { conn =>
+    tryWithConnection { conn =>
       conn.executeCommand("BEGIN")
       //_checkPQExecResult(res, conn, clearResult = true, command = "BEGIN")
 

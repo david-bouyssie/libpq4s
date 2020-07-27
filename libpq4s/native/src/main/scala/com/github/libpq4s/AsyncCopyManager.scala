@@ -16,7 +16,7 @@ class AsyncCopyManager private[libpq4s](connection: AsyncConnection)(private[lib
 
       val pgConn = connection.underlying
       val pgResult = resultIter.queryResult.underlying
-      PGresultUtils.checkExecutionStatus(pgConn, pgResult, ExecStatusType.PGRES_COPY_IN, clearOnMismatch = true)
+      PGresultUtils.checkExecutionStatus(pgConn, pgResult, ExecStatusType.PGRES_COPY_IN)
 
       new AsyncCopyIn(pgConn, pgResult)
     }
@@ -27,7 +27,7 @@ class AsyncCopyManager private[libpq4s](connection: AsyncConnection)(private[lib
 
       val pgConn = connection.underlying
       val pgResult = resultIter.queryResult.underlying
-      PGresultUtils.checkExecutionStatus(pgConn, pgResult, ExecStatusType.PGRES_COPY_OUT, clearOnMismatch = true)
+      PGresultUtils.checkExecutionStatus(pgConn, pgResult, ExecStatusType.PGRES_COPY_OUT)
 
       new AsyncCopyOut(pgConn, pgResult)
     }
@@ -155,24 +155,24 @@ class AsyncCopyIn private[libpq4s](conn: IPGconn, protected var res: IPGresult)(
       } // ends else endCopyPromise.isCompleted
     }
 
-    endCopyPromise.future.map { _ =>
-      libpq.PQclear(this.res)
-
+    val result = endCopyPromise.future.map { _ =>
       // After successfully calling PQputCopyEnd, call PQgetResult to obtain the final result status of the COPY command.
       // One can wait for this result to be available in the usual way.
       // Then return to normal operation.
       val finalRes = libpq.PQgetResult(conn)
-      PGresultUtils.checkExecutionStatus(conn, res, ExecStatusType.PGRES_COMMAND_OK, clearOnMismatch = true)
-      libpq.PQclear(finalRes)
-
-      libpq.PQclear(finalRes)
-      this.close()
+      try {
+        PGresultUtils.checkExecutionStatus(conn, res, ExecStatusType.PGRES_COMMAND_OK)
+      }
+      finally {
+        libpq.PQclear(finalRes)
+      }
 
       ()
-    } recover { case t =>
-      this.close()
-      throw t
     }
+    result.onComplete { case _ =>
+      this.close()
+    }
+    result
   }
 
   /*private def _checkPutResult(putResult: Try[Boolean] ): Boolean = {
@@ -260,7 +260,7 @@ class AsyncCopyOut private[libpq4s](conn: IPGconn, protected var res: IPGresult)
 
     } // ends connPollHandle.start
 
-    readFromCopyPromise.future.map { rowOpt =>
+    val result = readFromCopyPromise.future.map { rowOpt =>
 
       logger.debug(s"After $i iterations, data COPY was read")
 
@@ -270,17 +270,20 @@ class AsyncCopyOut private[libpq4s](conn: IPGconn, protected var res: IPGresult)
         // One can wait for this result to be available in the usual way.
         // Then return to normal operation.
         val finalRes = libpq.PQgetResult(conn)
-        PGresultUtils.checkExecutionStatus(conn, finalRes, ExecStatusType.PGRES_COMMAND_OK, clearOnMismatch = true)
-        libpq.PQclear(finalRes)
-
-        this.close()
+        try {
+          PGresultUtils.checkExecutionStatus(conn, finalRes, ExecStatusType.PGRES_COMMAND_OK)
+        } finally {
+          libpq.PQclear(finalRes)
+        }
       }
-
       rowOpt
-    } recover { case t =>
-      this.close()
-      throw t
     }
+
+    result.onComplete { _ =>
+      this.close()
+    }
+
+    result
 
   }
   
