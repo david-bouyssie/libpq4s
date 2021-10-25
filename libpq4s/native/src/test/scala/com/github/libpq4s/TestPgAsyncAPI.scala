@@ -20,8 +20,8 @@ object TestPgAsyncAPI extends LoopTestSuite with Logging {
   private val _connInfo = s"host=127.0.0.1 port=5432 user=$resourceName password=$resourceName dbname=$resourceName"
 
   val tests = Tests {
-    'createAndPopulateCarsTable - createAndPopulateCarsTable()
-    'testAsyncQuery - testAsyncQuery()
+    test("createAndPopulateCarsTable") { createAndPopulateCarsTable() }
+    test("testAsyncQuery") { testAsyncQuery() }
   }
 
   def tryWithConnection(autoClose: Boolean = true)(fn: Connection => Unit): Unit = {

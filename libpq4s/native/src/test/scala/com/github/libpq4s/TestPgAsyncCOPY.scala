@@ -22,8 +22,8 @@ object TestPgAsyncCOPY extends LoopTestSuite with Logging {
   private val _connInfo = s"host=127.0.0.1 port=5432 user=$resourceName password=$resourceName dbname=$resourceName"
 
   val tests = Tests {
-    // 'createAndPopulateCarsTable - createAndPopulateCarsTable()
-    'testAsyncCOPY - testAsyncCOPY()
+    // test("createAndPopulateCarsTable") { createAndPopulateCarsTable() }
+    test("testAsyncCOPY") { testAsyncCOPY() }
   }
 
   def now(): Duration = System.currentTimeMillis().millis

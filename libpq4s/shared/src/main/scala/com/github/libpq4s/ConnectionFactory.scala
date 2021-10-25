@@ -10,7 +10,7 @@ object ConnectionFactory {
 
   def getLibraryVersion()(implicit libpq: ILibPQ): Int = libpq.PQlibVersion()
 
-  private[libpq4s] def connOptionPtr2connOptions(connOptionsPtr: IPQconninfoOptionWrapper)(implicit libpq: ILibPQ): Seq[ConnInfoOption] = {
+  private[libpq4s] def connOptionPtr2connOptions(connOptionsPtr: IPQconninfoOptionWrapper)(implicit libpq: ILibPQ): collection.Seq[ConnInfoOption] = {
     val connOptionsBuffer = new ArrayBuffer[ConnInfoOption]()
 
     connOptionsPtr.forEachConnInfoOption { connInfoOpt =>
@@ -23,11 +23,11 @@ object ConnectionFactory {
     connOptionsBuffer
   }
 
-  def getDefaultConnectionOptions()(implicit libpq: ILibPQ): Seq[ConnInfoOption] = {
+  def getDefaultConnectionOptions()(implicit libpq: ILibPQ): collection.Seq[ConnInfoOption] = {
     connOptionPtr2connOptions(libpq.PQconndefaults()) // PQconninfoFree() called internally
   }
 
-  def parseConnectionString(connectionString: String)(implicit libpq: ILibPQ): Try[Seq[ConnInfoOption]] = {
+  def parseConnectionString(connectionString: String)(implicit libpq: ILibPQ): Try[collection.Seq[ConnInfoOption]] = {
     libpq.PQconninfoParse(connectionString).map { r =>
       connOptionPtr2connOptions(r) // PQconninfoFree() called internally
     }

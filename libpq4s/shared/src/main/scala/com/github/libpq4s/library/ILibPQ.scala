@@ -77,7 +77,7 @@ trait ILibPQ {
    *
    * Just in case we failed to set it in connectDBStart
    */
-  def PQconnectStartParams(params: Seq[(String,String)], expandDbName: Boolean): IPGconn
+  def PQconnectStartParams(params: collection.Seq[(String,String)], expandDbName: Boolean): IPGconn
 
   /**
    *  PQconnectPoll
@@ -168,7 +168,7 @@ trait ILibPQ {
    * You should call PQfinish (if conn is not NULL) regardless of whether this call
    * succeeded.
    */
-  def PQconnectdbParams(params: Seq[(String,String)], expandDbName: Boolean): IPGconn
+  def PQconnectdbParams(params: collection.Seq[(String,String)], expandDbName: Boolean): IPGconn
 
   /**
    *  PQsetdbLogin: Makes a new connection to the database server.
@@ -492,7 +492,7 @@ trait ILibPQ {
    * unknown attribute
    */
   //def PQsslAttribute(conn: IPGconn, attribute_name: String): String
-  //def PQsslAttributeNames(conn: IPGconn): Seq[String]
+  //def PQsslAttributeNames(conn: IPGconn): collection.Seq[String]
 
   /**
    * Dummy versions of SSL info functions, when built without SSL support
@@ -596,8 +596,8 @@ trait ILibPQ {
     conn: IPGconn,
     command: String,
     nParams: Int,
-    paramTypes: Seq[IOidBox],
-    paramValues: Seq[String],
+    paramTypes: collection.Seq[IOidBox],
+    paramValues: collection.Seq[String],
     paramLengths: Array[Int],
     paramFormats: Array[Int],
     resultFormat: Int
@@ -623,8 +623,8 @@ trait ILibPQ {
   def PQexecParamsText(
     conn: IPGconn,
     command: String,
-    paramValues: Seq[String],
-    paramTypes: Seq[IOidBox] // TODO: Option?
+    paramValues: collection.Seq[String],
+    paramTypes: collection.Seq[IOidBox] // TODO: Option?
   ): IPGresult
 
   /**
@@ -646,8 +646,8 @@ trait ILibPQ {
   def PQexecParamsBinary(
     conn: IPGconn,
     command: String,
-    paramValues: Seq[Array[Byte]],
-    paramTypes: Seq[IOidBox] // TODO: Option?
+    paramValues: collection.Seq[Array[Byte]],
+    paramTypes: collection.Seq[IOidBox] // TODO: Option?
   ): IPGresult
 
   /**
@@ -658,7 +658,7 @@ trait ILibPQ {
    * indicate either success or failure). The user is responsible for freeing the
    * PGresult via PQclear() when done with it.
    */
-  def PQprepare(conn: IPGconn, stmtName: String, query: String, paramTypes: Seq[IOidBox]): IPGresult  // TODO: paramTypes => Option?
+  def PQprepare(conn: IPGconn, stmtName: String, query: String, paramTypes: collection.Seq[IOidBox]): IPGresult  // TODO: paramTypes => Option?
 
   /**
    * PQexecPreparedText Like PQexec, but execute a previously prepared statement, using protocol 3.0 so we can pass parameters
@@ -666,7 +666,7 @@ trait ILibPQ {
   def PQexecPreparedText(
     conn: IPGconn,
     stmtName: String,
-    paramValues: Seq[String]
+    paramValues: collection.Seq[String]
   ): IPGresult
 
   /**
@@ -675,7 +675,7 @@ trait ILibPQ {
   def PQexecPreparedBinary(
     conn: IPGconn,
     stmtName: String,
-    paramValues: Seq[Array[Byte]]
+    paramValues: collection.Seq[Array[Byte]]
   ): IPGresult
 
   /**
@@ -698,8 +698,8 @@ trait ILibPQ {
     conn: IPGconn,
     command: String,
     nParams: Int,
-    paramTypes: Seq[IOidBox],
-    paramValues: Seq[String],
+    paramTypes: collection.Seq[IOidBox],
+    paramValues: collection.Seq[String],
     paramLengths: Array[Int],
     paramFormats: Array[Int],
     resultFormat: Int
@@ -707,15 +707,15 @@ trait ILibPQ {
   def PQsendQueryParamsText(
     conn: IPGconn,
     command: String,
-    paramValues: Seq[String],
-    paramTypes: Seq[IOidBox] // TODO: Option?
+    paramValues: collection.Seq[String],
+    paramTypes: collection.Seq[IOidBox] // TODO: Option?
   ): Boolean
 
   def PQsendQueryParamsBinary(
     conn: IPGconn,
     command: String,
-    paramValues: Seq[Array[Byte]],
-    paramTypes: Seq[IOidBox] // TODO: Option?
+    paramValues: collection.Seq[Array[Byte]],
+    paramTypes: collection.Seq[IOidBox] // TODO: Option?
   ): Boolean
 
   /**
@@ -756,7 +756,7 @@ trait ILibPQ {
    *
    * no param types
    */
-  //def PQsendQueryPrepared(conn: IPGconn, stmtName: String, nParams: Int, paramValues: Seq[String], paramLengths: Array[Int], paramFormats: Array[Int], resultFormat: Int): Int
+  //def PQsendQueryPrepared(conn: IPGconn, stmtName: String, nParams: Int, paramValues: collection.Seq[String], paramLengths: Array[Int], paramFormats: Array[Int], resultFormat: Int): Int
 
   /**
    * Select row-by-row processing mode
@@ -1012,7 +1012,7 @@ trait ILibPQ {
    *
    *  @return a value of the PGPing enumeration (PQPING_OK, PQPING_REJECT, PQPING_NO_RESPONSE, PQPING_NO_ATTEMPT).
    */
-  def PQpingParams(params: Seq[(String,String)], expandDbName: Boolean): IPGPing
+  def PQpingParams(params: collection.Seq[(String,String)], expandDbName: Boolean): IPGPing
 
   /**
    * Attempts to flush any queued output data to the server.
@@ -1722,14 +1722,14 @@ trait ILibPQ {
 /*
 trait ILibPQ {
   def PQconnectStart(conninfo: String): IPGconn
-  def PQconnectStartParams(params: Seq[(String,String)], expandDbname: Boolean): IPGconn
+  def PQconnectStartParams(params: collection.Seq[(String,String)], expandDbname: Boolean): IPGconn
   def PQconnectPoll(conn: IPGconn): IPostgresPollingStatusType
   def PQconnectdb(conninfo: String): IPGconn
-  def PQconnectdbParams(keywords: Seq[String], values: Seq[String], expand_dbname: Int): IPGconn
+  def PQconnectdbParams(keywords: collection.Seq[String], values: collection.Seq[String], expand_dbname: Int): IPGconn
   def PQsetdbLogin(pghost: String, pgport: String, pgoptions: String, pgtty: String, dbName: String, login: String, pwd: String): IPGconn
   def PQfinish(conn: IPGconn): Unit
   def PQconndefaults(): IPQconninfoOption
-  def PQconninfoParse(conninfo: String, errmsg: Seq[String]): IPQconninfoOption
+  def PQconninfoParse(conninfo: String, errmsg: collection.Seq[String]): IPQconninfoOption
   def PQconninfo(conn: IPGconn): IPQconninfoOption
   def PQconninfoFree(connOptions: IPQconninfoOption): Unit
   def PQresetStart(conn: IPGconn): Int
@@ -1762,7 +1762,7 @@ trait ILibPQ {
   def PQsslInUse(conn: IPGconn): Int
   def PQsslStruct(conn: IPGconn, struct_name: String): Ptr[Byte]
   def PQsslAttribute(conn: IPGconn, attribute_name: String): String
-  def PQsslAttributeNames(conn: IPGconn): Seq[String]
+  def PQsslAttributeNames(conn: IPGconn): collection.Seq[String]
   def PQgetssl(conn: IPGconn): Ptr[Byte]
   def PQinitSSL(do_init: Int): Unit
   def PQinitOpenSSL(do_ssl: Int, do_crypto: Int): Unit
@@ -1775,13 +1775,13 @@ trait ILibPQ {
   def PQregisterThreadLock(newhandler: CFuncPtr1[Int, Unit]): CFuncPtr1[Int, Unit]
   def PQexec(conn: IPGconn, query: String): IPGresult
   */
-  def PQexecParams(conn: IPGconn, command: String, nParams: Int, paramTypes: IOid, paramValues: Seq[String], paramLengths: Array[Int], paramFormats: Array[Int], resultFormat: Int): IPGresult
+  def PQexecParams(conn: IPGconn, command: String, nParams: Int, paramTypes: IOid, paramValues: collection.Seq[String], paramLengths: Array[Int], paramFormats: Array[Int], resultFormat: Int): IPGresult
   def PQprepare(conn: IPGconn, stmtName: String, query: String, nParams: Int, paramTypes: IOid): IPGresult
-  def PQexecPrepared(conn: IPGconn, stmtName: String, nParams: Int, paramValues: Seq[String], paramLengths: Array[Int], paramFormats: Array[Int], resultFormat: Int): IPGresult
+  def PQexecPrepared(conn: IPGconn, stmtName: String, nParams: Int, paramValues: collection.Seq[String], paramLengths: Array[Int], paramFormats: Array[Int], resultFormat: Int): IPGresult
   def PQsendQuery(conn: IPGconn, query: String): Int
-  def PQsendQueryParams(conn: IPGconn, command: String, nParams: Int, paramTypes: IOid, paramValues: Seq[String], paramLengths: Array[Int], paramFormats: Array[Int], resultFormat: Int): Int
+  def PQsendQueryParams(conn: IPGconn, command: String, nParams: Int, paramTypes: IOid, paramValues: collection.Seq[String], paramLengths: Array[Int], paramFormats: Array[Int], resultFormat: Int): Int
   def PQsendPrepare(conn: IPGconn, stmtName: String, query: String, nParams: Int, paramTypes: IOid): Int
-  def PQsendQueryPrepared(conn: IPGconn, stmtName: String, nParams: Int, paramValues: Seq[String], paramLengths: Array[Int], paramFormats: Array[Int], resultFormat: Int): Int
+  def PQsendQueryPrepared(conn: IPGconn, stmtName: String, nParams: Int, paramValues: collection.Seq[String], paramLengths: Array[Int], paramFormats: Array[Int], resultFormat: Int): Int
   def PQsetSingleRowMode(conn: IPGconn): Int
   def PQgetResult(conn: IPGconn): IPGresult
   def PQisBusy(conn: IPGconn): Int
@@ -1790,7 +1790,7 @@ trait ILibPQ {
   def PQnotifies(conn: IPGconn): Ptr[PGnotify]
   def PQputCopyData(conn: IPGconn, buffer: String, nbytes: Int): Int
   def PQputCopyEnd(conn: IPGconn, errormsg: String): Int
-  def PQgetCopyData(conn: IPGconn, buffer: Seq[String], async: Int): Int
+  def PQgetCopyData(conn: IPGconn, buffer: collection.Seq[String], async: Int): Int
   def PQgetline(conn: IPGconn, string: String, length: Int): Int
   def PQputline(conn: IPGconn, string: String): Int
   def PQgetlineAsync(conn: IPGconn, buffer: String, bufsize: Int): Int
@@ -1801,7 +1801,7 @@ trait ILibPQ {
   def PQisnonblocking(conn: IPGconn): Int
   def PQisthreadsafe(): Int
   // def PQping(conninfo: String): PGPing
-  // def PQpingParams(keywords: Seq[String], values: Seq[String], expand_dbname: Int): PGPing
+  // def PQpingParams(keywords: collection.Seq[String], values: collection.Seq[String], expand_dbname: Int): PGPing
   def PQflush(conn: IPGconn): Int
   // def PQfn(conn: IPGconn, fnid: Int, result_buf: Array[Int], result_len: Array[Int], result_is_int: Int, args: Ptr[PQArgBlock], nargs: Int): IPGresult
   def PQresultStatus(res: IPGresult): IExecStatusType

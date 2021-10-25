@@ -1,6 +1,7 @@
 project/target/
 project/project/
 target/
+.bsp/
 .idea
 lowered.hnir
 libpq4s/jvm

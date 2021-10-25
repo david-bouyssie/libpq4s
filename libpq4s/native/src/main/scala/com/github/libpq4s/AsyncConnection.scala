@@ -4,7 +4,7 @@ import scala.collection.mutable
 import scala.concurrent.{Future, Promise}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.scalanative.loop.Poll
+import scala.scalanative.loop.{Poll, RWResult}
 
 import com.github.libpq4s.api._
 import com.github.libpq4s.api.PostgresPollingStatusType._
@@ -114,7 +114,7 @@ class AsyncConnection private[libpq4s](connectStartFn: () => IPGconn)(implicit l
     // or PGRES_POLLING_OK, indicating the connection has been successfully made.
     var errorThrown = false
     var i = 0
-    _connPollHandle.start(in = readable, out = writable) { (socketStatus, socketReadable, socketWritable) =>
+    _connPollHandle.start(in = readable, out = writable) { case rwResult =>
       i += 1
 
       // If promise already completed => try to leave the event loop
@@ -127,15 +127,15 @@ class AsyncConnection private[libpq4s](connectStartFn: () => IPGconn)(implicit l
         // FIXME: should we acquire a new socket after each call to PQconnectPoll (see caution above)?
         _connPollingStatus = PQconnectPoll(conn)
 
-        if (socketStatus < 0) {
-          logger.error(s"Bad socket status: $socketStatus")
+        if (rwResult.result < 0) {
+          logger.error(s"Bad socket status: ${rwResult.result}")
           // TODO: also check that socket is readable & writable?
         } else if (_connPollingStatus == PGRES_POLLING_OK) {
           val curTime = now()
           val took = curTime - connStartTime
           logger.debug(
-            s"After $i iterations and $took, PQconnectPoll ready with socket status $socketStatus, " +
-              s"readable = $socketReadable and writable = $socketWritable"
+            s"After $i iterations and $took, PQconnectPoll ready with socket status ${rwResult.result}, " +
+              s"readable = ${rwResult.readable} and writable = ${rwResult.writable}"
           )
 
           /* To prevent PQsendQuery from blocking, we make a call to PQsetnonblocking with a true argument */
@@ -305,14 +305,14 @@ class AsyncConnection private[libpq4s](connectStartFn: () => IPGconn)(implicit l
     var queryConsumed = false
     var queryFlushed = false
     var i = 0
-    _connPollHandle.start(in = true, out = true) { (socketStatus, socketReadable, socketWritable) =>
+    _connPollHandle.start(in = true, out = true) { rwResult =>
       i += 1
 
       if (queryPromise.isCompleted) {
         this.stopPolling(_connPollHandle)
       } else {
-        if (socketStatus < 0) {
-          logger.error(s"Bad socket status: $socketStatus")
+        if (rwResult.result < 0) {
+          logger.error(s"Bad socket status: ${rwResult.result}")
           // TODO: also check that socket is readable & writable?
         } else if (!queryFlushed) { // query not yet flushed
           val flushingStatus = PQflush(conn)
@@ -329,7 +329,7 @@ class AsyncConnection private[libpq4s](connectStartFn: () => IPGconn)(implicit l
               //logger.debug("query flushed")
               queryFlushed = true
             }
-            else if (socketReadable) {
+            else if (rwResult.readable) {
               //logger.debug("calling PQconsumeInput")
               if (!PQconsumeInput(conn)) {
                 val errMsg = PQerrorMessage(conn)
@@ -353,8 +353,8 @@ class AsyncConnection private[libpq4s](connectStartFn: () => IPGconn)(implicit l
             val curTime = now()
             val took = curTime - queryStartTime
             logger.debug(
-              s"After $i iterations and $took, query result is ready with socket status $socketStatus, "+
-                s"readable = $socketReadable and writable = $socketWritable"
+              s"After $i iterations and $took, query result is ready with socket status ${rwResult.result}, "+
+                s"readable = ${rwResult.readable} and writable = ${rwResult.writable}"
             )
 
             queryPromise.success(new IterableQueryResult(conn, PQgetResult(conn), singleRowMode, pgResultConsumedPromise))
