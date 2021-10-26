@@ -5,7 +5,7 @@ import com.github.libpq4s.api.IRowData
 class ArrayRowData[T](
   /** Index of this row in the query results. Counts start at 0. */
   val rowIndex: Int,
-  val fields: Seq[T],
+  val fields: collection.Seq[T],
   val fieldMapping: collection.Map[String, Int]
 ) extends IRowData[T] {
 

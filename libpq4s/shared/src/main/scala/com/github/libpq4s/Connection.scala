@@ -8,11 +8,11 @@ import com.github.libpq4s.library._
 
 class Connection private[libpq4s](connectDbFn: () => IPGconn)(implicit libpq: ILibPQ) extends AbstractConnection() {
 
-  def this(connInfo: String)(implicit libpq: ILibPQ)  {
+  def this(connInfo: String)(implicit libpq: ILibPQ) = {
     this(() => libpq.PQconnectdb(connInfo))
   }
 
-  def this(params: Seq[(String,String)])(implicit libpq: ILibPQ)  {
+  def this(params: Seq[(String,String)])(implicit libpq: ILibPQ) = {
     this(() => libpq.PQconnectdbParams(params, expandDbName = false))
   }
 
@@ -44,7 +44,7 @@ abstract class AbstractConnection private[libpq4s]()(protected[libpq4s] implicit
     conn = null
   }
 
-  lazy val connectionOptions: Seq[ConnInfoOption] = {
+  lazy val connectionOptions: collection.Seq[ConnInfoOption] = {
     ConnectionFactory.connOptionPtr2connOptions(libpq.PQconninfo(conn)) // PQconninfoFree() called internally
   }
 
@@ -157,7 +157,7 @@ abstract class AbstractConnection private[libpq4s]()(protected[libpq4s] implicit
 
     PGresultUtils.checkExecutionStatus(underlying, execResult, ExecStatusType.PGRES_TUPLES_OK)
 
-    val pgResultConsumedPromise = Promise[Unit]
+    val pgResultConsumedPromise = Promise[Unit]()
     val iter = new IterableQueryResult(conn, execResult, singleRowMode = true, pgResultConsumedPromise)
 
     iter.foreachRow(onEachRow)

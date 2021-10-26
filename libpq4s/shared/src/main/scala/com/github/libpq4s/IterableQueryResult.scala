@@ -26,7 +26,7 @@ class IterableQueryResult private[libpq4s](
 
   private var _pgResult = res
 
-  def isClosed(): Boolean = _pgResult == null
+  def isClosed: Boolean = _pgResult == null
 
   def close(): Unit = {
     if (!isClosed) {
@@ -175,7 +175,7 @@ class IterableQueryResult private[libpq4s](
     fieldMapping
   }
 
-  private def _parseRow(rowIndex: Int, nFields: Int): Seq[String] = {
+  private def _parseRow(rowIndex: Int, nFields: Int): collection.Seq[String] = {
 
     val fields = new collection.mutable.ArrayBuffer[String](nFields)
 

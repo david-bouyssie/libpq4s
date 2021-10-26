@@ -17,29 +17,29 @@ object TestPgConn extends LoopTestSuite {
   private val _connInfo = s"host=127.0.0.1 port=5432 user=postgres password=postgres dbname=postgres"
 
   val tests = Tests {
-    'testGetLibPQVersion - testGetLibPQVersion()
-    'testSimpleConnection - testSimpleConnection()
-    'testSimpleQuery - testSimpleQuery()
+    test("testGetLibPQVersion") { testGetLibPQVersion() }
+    test("testSimpleConnection") { testSimpleConnection() }
+    test("testSimpleQuery") { testSimpleQuery() }
 
     // See:
     // - https://www.postgresql.org/docs/10/libpq-example.html
     // - https://github.com/postgres/postgres/blob/master/src/test/examples/testlibpq.c
     // - https://doxygen.postgresql.org/testlibpq_8c_source.html
-    'testOfficialExample - testOfficialExample()
+    test("testOfficialExample") { testOfficialExample() }
 
     // See: http://zetcode.com/db/postgresqlc/
-    'testTutorial - {
+    test("testTutorial") {
       // FIXME: create the connection only once when we can combine inner tests with local definitions and lambdas
-      'CreateAndPopulateCarsTable - _createAndPopulateCarsTable()
-      'ListTables - _listTables()
-      'QueryMetadata - _queryMetadata()
-      'QueryMultipleRows - _queryMultipleRows()
-      //'QueryUsingPreparedStatement - _queryUsingPreparedStatement()
-      //'UpdateDataUsingTransaction - _updateDataUsingTransaction()
+      test("CreateAndPopulateCarsTable") { _createAndPopulateCarsTable() }
+      test("ListTables") { _listTables() }
+      test("QueryMetadata") { _queryMetadata() }
+      test("QueryMultipleRows") { _queryMultipleRows() }
+      //test("QueryUsingPreparedStatement") { _queryUsingPreparedStatement() }
+      //test("UpdateDataUsingTransaction") { _updateDataUsingTransaction() }
     }
 
-    //'testAsyncQuery - testAsyncQuery()
-    //'testAsyncAndIterableQuery - testAsyncAndIterableQuery()
+    //test("testAsyncQuery") { testAsyncQuery() }
+    //test("testAsyncAndIterableQuery") { testAsyncAndIterableQuery() }
   }
 
   def testGetLibPQVersion(): Unit = {
@@ -172,7 +172,7 @@ object TestPgConn extends LoopTestSuite {
     tryWithConnection { conn =>
 
       Tests {
-        "Creating a database table" - _createAndPopulateTable()
+        test("Creating a database table") { _createAndPopulateTable() }
       }
     }
 

@@ -59,7 +59,7 @@ class AsyncCopyIn private[libpq4s](conn: IPGconn, protected var res: IPGresult)(
     val writePromise = Promise[Unit]
 
     var i = 0
-    connPollHandle.start(in = readable, out = writable) { (socketStatus, socketReadable, socketWritable) =>
+    connPollHandle.start(in = readable, out = writable) { rwResult =>
       i += 1
 
       // If promise already completed => try to leave the event loop
@@ -67,12 +67,12 @@ class AsyncCopyIn private[libpq4s](conn: IPGconn, protected var res: IPGresult)(
         this.stopPolling(connPollHandle)
       } else {
 
-        if (socketStatus < 0) {
-          logger.error(s"Bad socket status: $socketStatus")
+        if (rwResult.result < 0) {
+          logger.error(s"Bad socket status: ${rwResult.result}")
           // TODO: also check that socket is readable & writable?
-        } else if (socketWritable) {
+        } else if (rwResult.writable) {
           logger.debug(
-            s"After $i iterations, socket ready with status $socketStatus and writable = $socketWritable"
+            s"After $i iterations, socket ready with status ${rwResult.result} and writable = ${rwResult.writable}"
           )
 
           libpq.PQputCopyData(conn, data, offset, size) match {
@@ -116,7 +116,7 @@ class AsyncCopyIn private[libpq4s](conn: IPGconn, protected var res: IPGresult)(
     val endCopyPromise = Promise[Unit]
 
     var i = 0
-    connPollHandle.start(in = readable, out = writable) { (socketStatus, socketReadable, socketWritable) =>
+    connPollHandle.start(in = readable, out = writable) { rwResult =>
       i += 1
 
       // If promise already completed => try to leave the event loop
@@ -126,13 +126,13 @@ class AsyncCopyIn private[libpq4s](conn: IPGconn, protected var res: IPGresult)(
 
         // In nonblocking mode, to be certain that the data has been sent,
         // you should next wait for write-ready and call PQflush, repeating until it returns zero
-        if (socketStatus < 0) {
-          logger.error(s"Bad socket status: $socketStatus")
+        if (rwResult.result < 0) {
+          logger.error(s"Bad socket status: ${rwResult.result}")
           // TODO: also check that socket is readable & writable?
-        } else if (socketWritable) {
+        } else if (rwResult.writable) {
 
           logger.debug(
-            s"After $i iterations, socket ready with status $socketStatus and writable = $socketWritable"
+            s"After $i iterations, socket ready with status ${rwResult.result} and writable = ${rwResult.writable}"
           )
 
           val flushingStatus = libpq.PQflush(conn)
@@ -203,7 +203,7 @@ class AsyncCopyOut private[libpq4s](conn: IPGconn, protected var res: IPGresult)
     var isInputConsumed = false
 
     var i = 0
-    connPollHandle.start(in = readable, out = writable) { (socketStatus, socketReadable, socketWritable) =>
+    connPollHandle.start(in = readable, out = writable) { rwResult =>
       i += 1
 
       // If promise already completed => try to leave the event loop
@@ -230,13 +230,13 @@ class AsyncCopyOut private[libpq4s](conn: IPGconn, protected var res: IPGresult)
 
         if (!readFromCopyPromise.isCompleted) {
 
-          if (socketStatus < 0) {
-            logger.error(s"Bad socket status: $socketStatus")
+          if (rwResult.result < 0) {
+            logger.error(s"Bad socket status: ${rwResult.result}")
             // TODO: also check that socket is readable & writable?
-          } else if (socketReadable) {
+          } else if (rwResult.readable) {
 
             logger.debug(
-              s"After $i iterations, socket ready with status $socketStatus and readable = $socketReadable"
+              s"After $i iterations, socket ready with status ${rwResult.result} and readable = ${rwResult.readable}"
             )
 
             isInputConsumed = libpq.PQconsumeInput(conn)

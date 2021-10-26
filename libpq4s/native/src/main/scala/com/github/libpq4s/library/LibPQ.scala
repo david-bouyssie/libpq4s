@@ -6,6 +6,7 @@ import scala.scalanative.unsigned._
 
 import com.github.libpq4s.api._
 import com.github.libpq4s.bindings.pq
+import scala.scalanative.runtime.ByteArray
 
 object LibPQ extends ILibPQ {
 
@@ -110,8 +111,8 @@ object LibPQ extends ILibPQ {
   }
 
 
-  // Convert Seq[String] to NULL-terminated arrays typed as Ptr[CString]
-  private def strs2cstrPtr(strings: Seq[String], appendNullStr: Boolean = false)(implicit z: Zone): Ptr[CString] = {
+  // Convert collection.Seq[String] to NULL-terminated arrays typed as Ptr[CString]
+  private def strs2cstrPtr(strings: collection.Seq[String], appendNullStr: Boolean = false)(implicit z: Zone): Ptr[CString] = {
     val nStrings = if (appendNullStr) strings.length + 1 else strings.length
     val cstrBuffer = alloc[CString](nStrings)
 
@@ -129,8 +130,8 @@ object LibPQ extends ILibPQ {
     cstrBuffer
   }
 
-  // Convert Seq[Array[Byte]] to binary arrays typed as Ptr[CString]
-  private def byteArrays2cstrPtr(byteArrays: Seq[Array[Byte]])(implicit z: Zone): Ptr[CString] = {
+  // Convert collection.Seq[Array[Byte]] to binary arrays typed as Ptr[CString]
+  private def byteArrays2cstrPtr(byteArrays: collection.Seq[Array[Byte]])(implicit z: Zone): Ptr[CString] = {
     val nArrays = byteArrays.length
     val cstrBuffer = alloc[CString](nArrays)
 
@@ -152,11 +153,11 @@ object LibPQ extends ILibPQ {
     arr.asInstanceOf[IntArray].at(0)
   }
 
-  def oidSeq2oidPtr(arr: Seq[IOidBox])(implicit z: Zone): Ptr[pq.Oid] = {
+  def oidSeq2oidPtr(arr: collection.Seq[IOidBox])(implicit z: Zone): Ptr[pq.Oid] = {
     if (arr == null) return null
 
     val nOids = arr.length
-    val oidPtr = z.alloc(sizeof[pq.Oid] * nOids).asInstanceOf[Ptr[pq.Oid]]
+    val oidPtr = z.alloc(sizeof[pq.Oid] * nOids.toUInt).asInstanceOf[Ptr[pq.Oid]]
 
     var c = 0
     while (c < nOids) {
@@ -183,7 +184,7 @@ object LibPQ extends ILibPQ {
 
   // TODO: check me => complex API
   // TODO
-  def PQconnectStartParams(params: Seq[(String,String)], expandDbName: Boolean): IPGconn = {
+  def PQconnectStartParams(params: collection.Seq[(String,String)], expandDbName: Boolean): IPGconn = {
     require(params != null, "params is null")
 
     val keywords = params.map(_._1)
@@ -214,7 +215,7 @@ object LibPQ extends ILibPQ {
   }
 
   // TODO: check me => complex API
-  def PQconnectdbParams(params: Seq[(String,String)], expandDbName: Boolean): IPGconn = {
+  def PQconnectdbParams(params: collection.Seq[(String,String)], expandDbName: Boolean): IPGconn = {
     require(params != null, "params is null")
 
     val keywords = params.map(_._1)
@@ -242,7 +243,7 @@ object LibPQ extends ILibPQ {
 
   @inline def PQconndefaults(): IPQconninfoOptionWrapper = pq.PQconndefaults()
 
-  // def PQconninfoParse(conninfo: String, errmsg: Seq[String]): IPQconninfoOptionWrapper = {
+  // def PQconninfoParse(conninfo: String, errmsg: collection.Seq[String]): IPQconninfoOptionWrapper = {
   def PQconninfoParse(conninfo: String): util.Try[IPQconninfoOptionWrapper] = {
     require(conninfo != null, "conninfo is null")
 
@@ -308,7 +309,7 @@ object LibPQ extends ILibPQ {
     require(cancel != null, "cancel is null")
 
     val errbufsize = 512
-    val errbuf = scalanative.libc.stdlib.malloc(errbufsize) //.asInstanceOf[Ptr[CChar]]
+    val errbuf = ByteArray.alloc(errbufsize).at(0)
 
     val isOk = pq.PQcancel(cancel, errbuf, errbufsize)
 
@@ -415,7 +416,7 @@ object LibPQ extends ILibPQ {
   /*def PQsslInUse(conn: IPGconn): Int
   def PQsslStruct(conn: IPGconn, struct_name: String): Ptr[Byte]
   def PQsslAttribute(conn: IPGconn, attribute_name: String): String
-  def PQsslAttributeNames(conn: IPGconn): Seq[String]
+  def PQsslAttributeNames(conn: IPGconn): collection.Seq[String]
   def PQgetssl(conn: IPGconn): Ptr[Byte]
   def PQinitSSL(do_init: Int): Unit
   def PQinitOpenSSL(do_ssl: Int, do_crypto: Int): Unit
@@ -461,8 +462,8 @@ object LibPQ extends ILibPQ {
     conn: IPGconn,
     command: String,
     nParams: Int,
-    paramTypes: Seq[IOidBox],
-    paramValues: Seq[String],
+    paramTypes: collection.Seq[IOidBox],
+    paramValues: collection.Seq[String],
     paramLengths: Array[Int],
     paramFormats: Array[Int],
     resultFormat: Int
@@ -494,8 +495,8 @@ object LibPQ extends ILibPQ {
   def PQexecParamsText(
     conn: IPGconn,
     command: String,
-    paramValues: Seq[String],
-    paramTypes: Seq[IOidBox]
+    paramValues: collection.Seq[String],
+    paramTypes: collection.Seq[IOidBox]
   ): IPGresult = {
     require(conn != null, "conn is null")
     require(command != null, "command is null")
@@ -517,8 +518,8 @@ object LibPQ extends ILibPQ {
   def PQexecParamsBinary(
     conn: IPGconn,
     command: String,
-    paramValues: Seq[Array[Byte]],
-    paramTypes: Seq[IOidBox]
+    paramValues: collection.Seq[Array[Byte]],
+    paramTypes: collection.Seq[IOidBox]
   ): IPGresult = {
     require(conn != null, "conn is null")
     require(command != null, "command is null")
@@ -546,7 +547,7 @@ object LibPQ extends ILibPQ {
     conn: IPGconn,
     stmtName: String,
     query: String,
-    paramTypes: Seq[IOidBox]
+    paramTypes: collection.Seq[IOidBox]
   ): IPGresult = {
     require(conn != null, "conn is null")
     require(stmtName != null, "stmtName is null")
@@ -565,7 +566,7 @@ object LibPQ extends ILibPQ {
     conn: IPGconn,
     stmtName: String,
     nParams: Int,
-    paramValues: Seq[Array[Byte]],
+    paramValues: collection.Seq[Array[Byte]],
     paramLengths: Array[Int],
     paramFormats: Array[Int],
     resultFormat: Int
@@ -593,7 +594,7 @@ object LibPQ extends ILibPQ {
   def PQexecPreparedText(
     conn: IPGconn,
     stmtName: String,
-    paramValues: Seq[String]
+    paramValues: collection.Seq[String]
   ): IPGresult = {
     require(conn != null, "conn is null")
     require(stmtName != null, "stmtName is null")
@@ -611,7 +612,7 @@ object LibPQ extends ILibPQ {
   def PQexecPreparedBinary(
     conn: IPGconn,
     stmtName: String,
-    paramValues: Seq[Array[Byte]]
+    paramValues: collection.Seq[Array[Byte]]
   ): IPGresult = {
     require(conn != null, "conn is null")
     require(stmtName != null, "stmtName is null")
@@ -641,12 +642,12 @@ object LibPQ extends ILibPQ {
   }
 
   // TODO
-  //def PQsendQueryParams(conn: IPGconn, command: String, nParams: Int, paramTypes: IOid, paramValues: Seq[String], paramLengths: Array[Int], paramFormats: Array[Int], resultFormat: Int): Int
+  //def PQsendQueryParams(conn: IPGconn, command: String, nParams: Int, paramTypes: IOid, paramValues: collection.Seq[String], paramLengths: Array[Int], paramFormats: Array[Int], resultFormat: Int): Int
   def PQsendQueryParamsText(
     conn: IPGconn,
     command: String,
-    paramValues: Seq[String],
-    paramTypes: Seq[IOidBox]
+    paramValues: collection.Seq[String],
+    paramTypes: collection.Seq[IOidBox]
   ): Boolean = {
     require(conn != null, "conn is null")
     require(command != null, "command is null")
@@ -670,8 +671,8 @@ object LibPQ extends ILibPQ {
   def PQsendQueryParamsBinary(
     conn: IPGconn,
     command: String,
-    paramValues: Seq[Array[Byte]],
-    paramTypes: Seq[IOidBox]
+    paramValues: collection.Seq[Array[Byte]],
+    paramTypes: collection.Seq[IOidBox]
   ): Boolean = {
     require(conn != null, "conn is null")
     require(command != null, "command is null")
@@ -699,7 +700,7 @@ object LibPQ extends ILibPQ {
 
   //def PQsendPrepare(conn: IPGconn, stmtName: String, query: String, nParams: Int, paramTypes: IOid): Int
 
-  //def PQsendQueryPrepared(conn: IPGconn, stmtName: String, nParams: Int, paramValues: Seq[String], paramLengths: Array[Int], paramFormats: Array[Int], resultFormat: Int): Int
+  //def PQsendQueryPrepared(conn: IPGconn, stmtName: String, nParams: Int, paramValues: collection.Seq[String], paramLengths: Array[Int], paramFormats: Array[Int], resultFormat: Int): Int
 
   @inline def PQsetSingleRowMode(conn: IPGconn): Int = {
     require(conn != null, "conn is null")
@@ -769,7 +770,7 @@ object LibPQ extends ILibPQ {
     else {
       val buffer = !bufferPtr
       assert(buffer != null, s"the buffer should be null since we have read $copyDataRC bytes")
-      val rowAsBytes = util.Left(CUtils.bytes2ByteArray(buffer, copyDataRC))
+      val rowAsBytes = util.Left(CUtils.bytes2ByteArray(buffer, copyDataRC.toULong))
       pq.PQfreemem(buffer)
       rowAsBytes
     }
@@ -810,7 +811,7 @@ object LibPQ extends ILibPQ {
     }
   }
 
-  def PQpingParams(params: Seq[(String,String)], expandDbName: Boolean): IPGPing = {
+  def PQpingParams(params: collection.Seq[(String,String)], expandDbName: Boolean): IPGPing = {
     require(params != null, "params is null")
 
     val keywords = params.map(_._1)

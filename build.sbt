@@ -1,17 +1,19 @@
 import scala.language.postfixOps
 
+val scala213 = "2.13.6"
+
 val sharedSettings = Seq(
   name := "libpq4s",
   organization := "com.github.david-bouyssie",
   version := "0.1.0-SNAPSHOT",
-  scalaVersion := "2.11.12",
-
+  scalaVersion := scala213,
+  crossScalaVersions := Seq(scala213, "2.12.15", "2.11.12"),
   // TODO: for dev only
   scalacOptions ++= Seq("-deprecation", "-feature"),
 
   libraryDependencies ++= Seq(
-    // "com.outr" %%% "scribe" % "2.7.12",
-    // "com.lihaoyi" %%% "utest" % "0.7.4" % "test" // TODO: update me when the same version is available for both the JVM and SN
+    "com.outr" %%% "scribe" % "3.6.2",
+    "com.lihaoyi" %%% "utest" % "0.7.10" % Test
   )
 )
 
@@ -38,9 +40,7 @@ lazy val libpq4s = crossProject(JVMPlatform, NativePlatform)
   .nativeSettings( // defined in sbt-scala-native
 
     libraryDependencies ++= Seq(
-      "com.outr" %%% "scribe" % "2.7.12",
-      "dev.whaling" % "native-loop-core_native0.4.0-M2_2.11" % "0.1.1-SNAPSHOT",
-      "com.lihaoyi" %%% "utest" % "0.7.4" % Test
+      "com.github.lolgab" %%% "native-loop-core" % "0.2.0"
     ),
 
     testFrameworks += new TestFramework("utest.runner.Framework"),
